@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Forms\Components\Hidden;
 
 class DoctorResource extends Resource
 {
@@ -42,17 +43,26 @@ class DoctorResource extends Resource
                 Forms\Components\Select::make('hospital_id')
                     ->relationship('hospital', 'name')
                     ->required(),
-                Forms\Components\TextInput::make('password')
+                    Forms\Components\TextInput::make('password')
                     ->password()
-                    ->required(fn (string $context): bool => $context === 'create')
                     ->minLength(8)
-                    ->same('passwordConfirmation'),
+                    ->nullable() // Allow nullable values during updates
+                    ->dehydrateStateUsing(function ($state) {
+                        return $state ? bcrypt($state) : null; // Only hash if a new password is provided
+                    })
+                    ->dehydrated(fn ($state) => filled($state)) // Only save if a password is provided
+                    ->required(fn (string $context): bool => $context === 'create') // Only required during creation
+                    ->label('Password'),
                 Forms\Components\TextInput::make('passwordConfirmation')
                     ->password()
                     ->label('Password Confirmation')
-                    ->required(fn (string $context): bool => $context === 'create')
                     ->minLength(8)
-                    ->dehydrated(false),
+                    ->dehydrated(false) // Do not save this field
+                    ->required(fn (string $context): bool => $context === 'create') // Required only during creation
+                    ->same('password'), // Ensure it matches the password field
+                Forms\Components\Hidden::make('user_role')
+                    ->default('doctor')
+                    ->dehydrateStateUsing(fn ($state) => 'doctor'),
             ]);
     }
 
