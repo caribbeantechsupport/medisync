@@ -3,12 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PatientResource\Pages;
+use App\Filament\Resources\PatientResource\RelationManagers\PrescriptionsRelationManager;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use MedicalRecordsRelationManager;
 
 class PatientResource extends Resource
 {
@@ -79,7 +81,8 @@ class PatientResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            MedicalRecordsRelationManager::class,
+            PrescriptionsRelationManager::class,
         ];
     }
 

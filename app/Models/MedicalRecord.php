@@ -27,12 +27,12 @@ class MedicalRecord extends Model
     // Relationships
     public function patient()
     {
-        return $this->belongsTo(User::class, 'patient_id')->where('user_role', 'patient');
+        return $this->belongsTo(User::class, 'patient_id');
     }
 
     public function doctor()
     {
-        return $this->belongsTo(User::class, 'doctor_id')->where('user_role', 'doctor');
+        return $this->belongsTo(User::class, 'doctor_id');
     }
 
     public function hospital()
