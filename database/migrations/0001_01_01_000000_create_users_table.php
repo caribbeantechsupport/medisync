@@ -13,12 +13,26 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('user_name')->unique();
+            $table->string('first_name');
+            $table->string('middle_name')->nullable();
+            $table->string('last_name');
+            $table->string('national_identification')->unique();
             $table->string('email')->unique();
+            $table->string('contact_number');
+            $table->string('address');
+            $table->string('country');
+            $table->string('kin_name')->nullable();
+            $table->string('kin_contact_number')->nullable();
+            $table->string('kin_address')->nullable();
+            $table->enum('user_role', ['patient', 'doctor', 'admin', 'hospital_admin']);
+            $table->string('doctor_specialization')->nullable();
+            $table->unsignedBigInteger('hospital_id')->nullable()->constrained('hospitals')->onDelete('set null');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -42,8 +56,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('users');
     }
 };
