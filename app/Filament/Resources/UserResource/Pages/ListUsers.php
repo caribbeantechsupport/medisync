@@ -16,4 +16,10 @@ class ListUsers extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected function canViewAny(): bool
+    {
+        // Only admins can view the users
+        return auth()->user()->user_role === 'admin';
+    }
 }

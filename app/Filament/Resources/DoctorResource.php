@@ -26,6 +26,12 @@ class DoctorResource extends Resource
         return parent::getEloquentQuery()->where('user_role', 'doctor');
     }
 
+    public static function canCreate(): bool
+    {
+        // Only non-doctors (e.g., admins) can create doctors
+        return auth()->user()->user_role !== 'doctor';
+    }
+
     public static function form(Form $form): Form
     {
         return $form

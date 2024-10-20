@@ -61,4 +61,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(Prescription::class, $this->user_role === 'patient' ? 'patient_id' : 'doctor_id');
     }
+
+
 }

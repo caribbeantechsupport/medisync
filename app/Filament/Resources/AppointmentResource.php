@@ -21,12 +21,41 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table as TablesTable;
 use Filament\Tables\Table;
 use Symfony\Component\Console\Helper\Table as HelperTable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class AppointmentResource extends Resource
 {
     protected static ?string $model = Appointment::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
+
+    public static function getEloquentQuery(): Builder
+    {
+        $user = Auth::user();
+
+        // Start with the base query
+        $query = parent::getEloquentQuery();
+
+        // Check the user's role and filter accordingly
+        if ($user->user_role === 'doctor') {
+            // Doctors only see their own appointments
+            return $query->where('doctor_id', $user->id);
+        }
+
+        if ($user->user_role === 'patient') {
+            // Patients only see their own appointments
+            return $query->where('patient_id', $user->id);
+        }
+
+        if ($user->user_role === 'hospital_admin') {
+            // Hospital admins only see appointments in their hospital
+            return $query->where('hospital_id', $user->hospital_id);
+        }
+
+        // For admins or other roles, return all appointments
+        return $query;
+    }
 
     public static function form(Form $form): Form
     {

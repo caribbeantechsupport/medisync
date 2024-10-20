@@ -16,6 +16,12 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        // Only show the Users tab to admins
+        return auth()->user()->user_role === 'admin';
+    }
+
     public static function form(Form $form): Form
     {
         return $form

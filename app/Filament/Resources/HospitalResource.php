@@ -9,12 +9,19 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use App\Models\User;
 
 class HospitalResource extends Resource
 {
     protected static ?string $model = Hospital::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        // Only show the Hospital tab to admins
+        return auth()->user()->user_role === 'admin';
+    }
 
     public static function form(Form $form): Form
     {

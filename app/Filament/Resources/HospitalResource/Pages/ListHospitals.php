@@ -16,4 +16,10 @@ class ListHospitals extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected function canViewAny(): bool
+    {
+        // Only admins can view the hospitals
+        return auth()->user()->user_role === 'admin';
+    }
 }
