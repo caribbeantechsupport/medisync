@@ -62,10 +62,14 @@ class AppointmentResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('patient_id')
-                    ->relationship('patient', 'user_name')
+                    ->relationship('patient', titleAttribute: 'user_name')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->first_name} {$record->last_name}")
+                    ->default(fn() => auth()->user()->user_role === 'patient' ? auth()->id() : null)
+                    ->disabled(fn() => auth()->user()->user_role === 'patient')
                     ->required(),
                 Forms\Components\Select::make('doctor_id')
-                    ->relationship('doctor', 'user_name')
+                    ->relationship('doctor', titleAttribute: 'user_name')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->first_name} {$record->last_name}")
                     ->required(),
                 Forms\Components\Select::make('hospital_id')
                     ->relationship('hospital', 'name')
@@ -96,8 +100,16 @@ class AppointmentResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('patient.user_name')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('doctor.user_name')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('patient.first_name')
+                    ->label('Patient')
+                    ->formatStateUsing(fn ($record) => "{$record->patient->first_name} {$record->patient->last_name}")
+                    ->searchable(['first_name', 'last_name'])
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('doctor.first_name')
+                    ->label('Doctor')
+                    ->formatStateUsing(fn ($record) => "{$record->doctor->first_name} {$record->doctor->last_name}")
+                    ->searchable(['first_name', 'last_name'])
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('hospital.name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('appointment_datetime')->dateTime()->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('status')->searchable()->sortable(),

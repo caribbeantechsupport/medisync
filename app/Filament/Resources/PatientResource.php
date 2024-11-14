@@ -22,6 +22,11 @@ class PatientResource extends Resource
 
     protected static ?string $slug = 'patients';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+    return auth()->user()->user_role !== 'patient';
+    }
+
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $query = parent::getEloquentQuery()->where('user_role', 'patient');

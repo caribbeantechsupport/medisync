@@ -104,7 +104,6 @@ class DoctorResource extends Resource
 
     public static function canEdit(Model $record): bool
     {
-        // Only allow non-doctors (e.g., admins) to edit doctor records
-        return auth()->user()->user_role !== 'doctor';
+        return in_array(auth()->user()->user_role, ['admin', 'hospital_admin']);
     }
 }
