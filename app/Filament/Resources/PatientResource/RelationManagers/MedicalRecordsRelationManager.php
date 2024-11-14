@@ -27,7 +27,9 @@ class MedicalRecordsRelationManager extends RelationManager
                     ->label('Prescribed Medication')
                     ->listWithLineBreaks()
                     ->limitList(3),
-            ])
+                Tables\Columns\TextColumn::make('doctor.first_name')
+                    ->label('Doctor')
+                    ->formatStateUsing(fn ($record) => $record->doctor->first_name . ' ' . $record->doctor->last_name),            ])
             ->filters([
                 //
             ])

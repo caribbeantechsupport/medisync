@@ -2,14 +2,15 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\DoctorResource\Pages;
-use App\Models\User;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
+use App\Models\User;
 use Filament\Tables;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
 use Filament\Forms\Components\Hidden;
+use Illuminate\Database\Eloquent\Model;
+use App\Filament\Resources\DoctorResource\Pages;
 
 class DoctorResource extends Resource
 {
@@ -31,7 +32,6 @@ class DoctorResource extends Resource
         // Only non-doctors (e.g., admins) can create doctors
         return auth()->user()->user_role !== 'doctor';
     }
-
     public static function form(Form $form): Form
     {
         return $form
@@ -45,27 +45,25 @@ class DoctorResource extends Resource
                 Forms\Components\TextInput::make('contact_number')->required(),
                 Forms\Components\TextInput::make('address')->required(),
                 Forms\Components\TextInput::make('country')->required(),
-                Forms\Components\TextInput::make('doctor_specialization')->required(),
-                Forms\Components\Select::make('hospital_id')
-                    ->relationship('hospital', 'name')
-                    ->required(),
-                    Forms\Components\TextInput::make('password')
+                Forms\Components\TextInput::make('password')
                     ->password()
                     ->minLength(8)
-                    ->nullable() // Allow nullable values during updates
+                    ->nullable()
                     ->dehydrateStateUsing(function ($state) {
-                        return $state ? bcrypt($state) : null; // Only hash if a new password is provided
+                        return $state ? bcrypt($state) : null;
                     })
-                    ->dehydrated(fn ($state) => filled($state)) // Only save if a password is provided
-                    ->required(fn (string $context): bool => $context === 'create') // Only required during creation
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->required(fn (string $context): bool => $context === 'create')
+                    ->visible(fn(): bool => auth()->user()->user_role === 'admin')
                     ->label('Password'),
                 Forms\Components\TextInput::make('passwordConfirmation')
                     ->password()
                     ->label('Password Confirmation')
                     ->minLength(8)
-                    ->dehydrated(false) // Do not save this field
-                    ->required(fn (string $context): bool => $context === 'create') // Required only during creation
-                    ->same('password'), // Ensure it matches the password field
+                    ->dehydrated(false)
+                    ->required(fn (string $context): bool => $context === 'create')
+                    ->same('password')
+                    ->visible(fn(): bool => auth()->user()->user_role === 'admin'),
                 Forms\Components\Hidden::make('user_role')
                     ->default('doctor')
                     ->dehydrateStateUsing(fn ($state) => 'doctor'),
@@ -82,6 +80,9 @@ class DoctorResource extends Resource
                 Tables\Columns\TextColumn::make('email')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('doctor_specialization')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('hospital.name')->searchable()->sortable(),
+            ])
+            ->actions([
+                Tables\Actions\ViewAction::make(),
             ]);
     }
 
@@ -99,5 +100,11 @@ class DoctorResource extends Resource
             'create' => Pages\CreateDoctor::route('/create'),
             'edit' => Pages\EditDoctor::route('/{record}/edit'),
         ];
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        // Only allow non-doctors (e.g., admins) to edit doctor records
+        return auth()->user()->user_role !== 'doctor';
     }
 }

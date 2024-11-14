@@ -46,21 +46,21 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Hospital::class);
     }
-
     public function appointments()
     {
-        return $this->hasMany(Appointment::class, $this->user_role === 'patient' ? 'patient_id' : 'doctor_id');
+        return $this->hasMany(Appointment::class, 'patient_id');
     }
 
     public function medicalRecords()
     {
-        return $this->hasMany(MedicalRecord::class, $this->user_role === 'patient' ? 'patient_id' : 'doctor_id');
+        return $this->hasMany(MedicalRecord::class, 'patient_id');
     }
 
     public function prescriptions()
     {
-        return $this->hasMany(Prescription::class, $this->user_role === 'patient' ? 'patient_id' : 'doctor_id');
+        return $this->hasMany(Prescription::class, 'patient_id');
     }
+
 
 
 }

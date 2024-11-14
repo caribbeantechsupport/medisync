@@ -24,9 +24,30 @@ class PatientResource extends Resource
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        return parent::getEloquentQuery()->where('user_role', 'patient');
-    }
+        $query = parent::getEloquentQuery()->where('user_role', 'patient');
 
+        $user = auth()->user();
+
+        if ($user->user_role === 'doctor') {
+            return $query->where(function ($query) use ($user) {
+                $query->whereHas('appointments', function ($query) use ($user) {
+                    $query->where('doctor_id', $user->id);
+                })
+                ->orWhereHas('medicalRecords', function ($query) use ($user) {
+                    $query->where('doctor_id', $user->id);
+                })
+                ->orWhereHas('prescriptions', function ($query) use ($user) {
+                    $query->where('doctor_id', $user->id);
+                });
+            });
+        }
+
+        if ($user->user_role === 'hospital_admin') {
+            return $query->where('hospital_id', $user->hospital_id);
+        }
+
+        return $query;
+    }
     public static function form(Form $form): Form
     {
         return $form
@@ -46,20 +67,22 @@ class PatientResource extends Resource
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->minLength(8)
-                    ->nullable() // Allow nullable values during updates
+                    ->nullable()
                     ->dehydrateStateUsing(function ($state) {
-                        return $state ? bcrypt($state) : null; // Only hash if a new password is provided
+                        return $state ? bcrypt($state) : null;
                     })
-                    ->dehydrated(fn ($state) => filled($state)) // Only save if a password is provided
-                    ->required(fn (string $context): bool => $context === 'create') // Only required during creation
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->required(fn (string $context): bool => $context === 'create')
+                    ->visible(fn(): bool => auth()->user()->user_role === 'admin')
                     ->label('Password'),
                 Forms\Components\TextInput::make('passwordConfirmation')
                     ->password()
                     ->label('Password Confirmation')
                     ->minLength(8)
-                    ->dehydrated(false) // Do not save this field
-                    ->required(fn (string $context): bool => $context === 'create') // Required only during creation
-                    ->same('password'), // Ensure it matches the password field
+                    ->dehydrated(false)
+                    ->required(fn (string $context): bool => $context === 'create')
+                    ->same('password')
+                    ->visible(fn(): bool => auth()->user()->user_role === 'admin'),
                 Forms\Components\Hidden::make('user_role')
                     ->default('doctor')
                     ->dehydrateStateUsing(fn ($state) => 'patient'),
@@ -85,13 +108,14 @@ class PatientResource extends Resource
             PrescriptionsRelationManager::class,
         ];
     }
-
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListPatients::route('/'),
             'create' => Pages\CreatePatient::route('/create'),
             'edit' => Pages\EditPatient::route('/{record}/edit'),
+            'verify-id' => Pages\VerifyPatientId::route('/{record}/verify'),
+            'view' => Pages\ViewPatient::route('/{record}'),
         ];
     }
 }

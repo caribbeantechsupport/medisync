@@ -44,6 +44,9 @@ class PrescriptionsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('prescription_date')
                     ->date(),
                 Tables\Columns\TextColumn::make('medication_name'),
+                Tables\Columns\TextColumn::make('doctor.first_name')
+                    ->label('Doctor')
+                    ->formatStateUsing(fn ($record) => $record->doctor->first_name . ' ' . $record->doctor->last_name),
             ])
             ->filters([
                 //
@@ -52,6 +55,7 @@ class PrescriptionsRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make(),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

@@ -3,17 +3,19 @@
 namespace App\Filament\Resources\PatientResource\Pages;
 
 use App\Filament\Resources\PatientResource;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
 class EditPatient extends EditRecord
 {
     protected static string $resource = PatientResource::class;
-
-    protected function getHeaderActions(): array
+    protected function authorizeAccess(): void
     {
-        return [
-            Actions\DeleteAction::make(),
-        ];
+        parent::authorizeAccess();
+
+        if (auth()->user()->user_role === 'doctor') {
+            if (!session('verified_patient_' . $this->record->id)) {
+                redirect()->route('filament.admin.resources.patients.verify-id', ['record' => $this->record]);
+            }
+        }
     }
 }
